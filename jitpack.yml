@@ -1,15 +1,16 @@
 # https://jitpack.io/docs/BUILDING/
-
+# implementation 'com.github.jmfayard:refreshVersions:Tag'
 jdk:
   - openjdk8
 #before_install:
 #  - ./custom_setup.sh
 install:
   - echo "Publishing ${}${}${}"
+  - echo "implementation(com.github.$GROUP:$ARTIFACT:$VERSION-SNAPSHOT)"
   - echo "See https://jitpack.io/com/github/$GROUP/$ARTIFACT/$VERSION/"
   - echo "Logs at https://jitpack.io/com/github/$GROUP/$ARTIFACT/$VERSION/build.log"
   - cd plugins
   - ./gradlew publishToMavenLocal
   - cd ../
-env:
+#env:
 #  MYVAR: "custom environment variable"
