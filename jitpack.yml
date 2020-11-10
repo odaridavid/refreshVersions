@@ -5,7 +5,6 @@ jdk:
 #before_install:
 #  - ./custom_setup.sh
 install:
-  - echo "Publishing ${}${}${}"
   - echo "implementation(com.github.$GROUP:$ARTIFACT:$VERSION-SNAPSHOT)"
   - echo "See https://jitpack.io/com/github/$GROUP/$ARTIFACT/$VERSION/"
   - echo "Logs at https://jitpack.io/com/github/$GROUP/$ARTIFACT/$VERSION/build.log"
