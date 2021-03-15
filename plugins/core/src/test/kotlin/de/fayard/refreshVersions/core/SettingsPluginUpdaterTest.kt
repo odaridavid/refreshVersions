@@ -118,4 +118,74 @@ class SettingsPluginUpdaterTest {
             actual = actualOutput
         )
     }
+
+    @TestFactory
+    fun `tests for String#findRanges`(): List<DynamicTest> {
+        val samplesDirs = unitTestsSampleDataDir.resolve("findRanges").listFiles { file ->
+            file.isDirectory
+        }!!.asList()
+        return samplesDirs.map { dir ->
+            DynamicTest.dynamicTest(dir.name) {
+                `test String#findRanges`(
+                    inputFile = dir.resolve("gvy-with-comments.settings.gradle"),
+                    expectedOutputFile = dir.resolve("gvy-removed-comments.settings.gradle"),
+                    stringLiteralsFile = dir.resolve("gvy-string-literals.txt")
+                )
+                `test String#findRanges`(
+                    inputFile = dir.resolve("kt-with-comments.settings.gradle.kts"),
+                    expectedOutputFile = dir.resolve("kt-removed-comments.settings.gradle.kts"),
+                    stringLiteralsFile = dir.resolve("kt-string-literals.txt")
+                )
+            }
+        }
+    }
+
+    private fun `test String#findRanges`(
+        inputFile: File,
+        expectedOutputFile: File,
+        stringLiteralsFile: File
+    ) {
+        val actualStringLiteralsReversed = mutableListOf<String>()
+        val allTheChunksReversed = mutableListOf<String>()
+        val inputText = inputFile.readText()
+        val actualOutput = with(SettingsPluginsUpdater) {
+            buildString {
+                append(inputText)
+                findRanges(
+                    isKotlinDsl = inputFile.extension == "kts"
+                ).asReversed().forEach { range ->
+                    val textRange = substring(range.startIndex, range.endIndex)
+                    allTheChunksReversed.add(textRange)
+                    when (range) {
+                        is SettingsPluginsUpdater.Range.Comment -> replace(
+                            /* start = */ range.startIndex,
+                            /* end = */ range.endIndex,
+                            /* str = */""
+                        )
+                        is SettingsPluginsUpdater.Range.StringLiteral -> {
+                            actualStringLiteralsReversed.add(textRange)
+                        }
+                        is SettingsPluginsUpdater.Range.CodeChunk -> Unit // Nothing to do.
+                    }
+                }
+            }
+        }
+        assertEquals(
+            expected = expectedOutputFile.readText(),
+            actual = actualOutput.lineSequence().map {
+                it.ifBlank { "" }
+            }.joinToString(separator = "\n")
+        )
+        assertEquals(
+            expected = stringLiteralsFile.readText(),
+            actual = actualStringLiteralsReversed.asReversed().joinToString(
+                separator = "\n",
+                postfix = "\n"
+            )
+        )
+        assertEquals(
+            expected = inputText,
+            actual = allTheChunksReversed.asReversed().joinToString(separator = "")
+        )
+    }
 }
